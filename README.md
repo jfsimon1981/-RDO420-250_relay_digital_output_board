@@ -14,4 +14,5 @@ Please see product page and ressources for more informations.
 
 More info on product page
 [LCElectronics](http://lecomptoirelectronique.fr/store)
+
 [LCElectronics/RDO420-250](http://lecomptoirelectronique.fr/store/index.php?route=product/product&path=66&product_id=65)
