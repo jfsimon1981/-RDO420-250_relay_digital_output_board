@@ -12,7 +12,7 @@ It can drive auxiliary and small power devices.
 
 Please see product page and ressources for more informations.
 
-More info on product page
-[LCElectronics](http://lecomptoirelectronique.fr/store)
+## Ressources
 
-[LCElectronics/RDO420-250](http://lecomptoirelectronique.fr/store/index.php?route=product/product&path=66&product_id=65)
+  - [LCElectronics](http://lecomptoirelectronique.fr/store)
+  - [LCElectronics/RDO420-250](http://lecomptoirelectronique.fr/store/index.php?route=product/product&path=66&product_id=65)
