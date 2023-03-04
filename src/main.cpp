@@ -28,3 +28,11 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   */
 
+#include <avr/io.h>
+#include "init.h"
+#include "program.h"
+
+int main() {
+  init();
+  while (1) program_loop();
+}
