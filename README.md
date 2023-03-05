@@ -20,20 +20,24 @@ The board
   - Mode 2 Copy push-button
   - Mode 3 Timer operation
 
-Configuration is done via I2C serial bus or by push-buttons
+Configuration can be done via I2C serial bus and push-buttons
 
-  - Set mode by I2C and time-out by I2C for individual relays
-  - Set mode by switches: keep SW1, SW2 or SW3 pressed and reset board for mode 1, 2, 3 respectively (note 1)
-  - If mode 3 is selected, release SW3 and press again any of SW1 to SW4
-to change their timeout. Press again to select time-out common to all relays: (note 2)
+  - Set mode and time-out by I2C for individual relays
+    - Arduino example
+    - C sources example for controlling via our MCUs
+    - See programming manual
+  - Set mode by switches
+    - Keep SW1, SW2 or SW3 pressed to change mode/configure corresponding relay and reset board
+    - Realease switch and press again 1, 2, 3 (to select mode 1, 2, 3 respectively (note 1)
+  - If mode 3 is selected, release and press again any of SW1 to SW4 for time-out
     - SW1 for 1s pulse
     - SW2 for 30s pulse
     - SW3 for 3 minutes pulse
     - SW4 for 5 minutes pulse
 
-Note 1: Configuration will persist across next reset/powerup.
-
-Note 2: I2C allows fine grain configuration mode and time-out settings per relay
+Additional features are available through I2C configuration: 
+  - Enable/disable local control for individual or all relays
+  - Fine grained time-out (1s-24h)
 
 ## Ressources
 

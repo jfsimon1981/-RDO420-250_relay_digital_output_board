@@ -32,17 +32,19 @@ void program_loop() {
     bool sw3 = read_sw3();
     bool sw4 = read_sw4();
 
-    if (!sw1) {toggle_k1();}
-    else if (!sw2) {toggle_k2();}
-    else if (!sw3) {toggle_k3();}
-    else if (!sw4) {toggle_k4();}
-    delay_ms(100);
-    while (!(sw1 & sw2 & sw3 & sw4)) {
-      sw1 = read_sw1();
-      sw2 = read_sw2();
-      sw3 = read_sw3();
-      sw4 = read_sw4();
+    if (!(sw1 & sw2 & sw3 & sw4)) {
+      if (!sw1) {toggle_k1();}
+      else if (!sw2) {toggle_k2();}
+      else if (!sw3) {toggle_k3();}
+      else if (!sw4) {toggle_k4();}
+      delay_ms(50);
+      while (!(sw1 & sw2 & sw3 & sw4)) {
+        sw1 = read_sw1();
+        sw2 = read_sw2();
+        sw3 = read_sw3();
+        sw4 = read_sw4();
+      }
+      delay_ms(150);
     }
-    delay_ms(100);
   }
 }
