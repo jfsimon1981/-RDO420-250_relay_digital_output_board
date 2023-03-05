@@ -30,10 +30,10 @@ Configuration can be done via I2C serial bus and push-buttons
     - Keep SW1, SW2 or SW3 pressed to change mode/configure corresponding relay and reset board
     - Realease switch and press again 1, 2, 3 (to select mode 1, 2, 3 respectively (note 1)
   - If mode 3 is selected, release and press again any of SW1 to SW4 for selecting time-out respectively:
-    - 1) 1s pulse
-    - 2) 30s pulse
-    - 3) 3 minutes pulse
-    - 4) 5 minutes pulse
+    1) 1s pulse
+    2) 30s pulse
+    3) 3 minutes pulse
+    4) 5 minutes pulse
 
 Additional features are available through I2C configuration: 
   - Enable/disable local control for individual or all relays
