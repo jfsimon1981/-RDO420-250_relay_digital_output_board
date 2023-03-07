@@ -34,5 +34,5 @@
 
 int main() {
   init();
-  while (1) program_loop();
+  program_loop();
 }

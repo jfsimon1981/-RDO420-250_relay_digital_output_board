@@ -41,6 +41,15 @@ Additional features are available through I2C configuration:
 
 Note 1: configurations are persistent across reset/power up
 
+Default is mode 2.
+
+Mode 3 comes with additional features, timer, and custom watchdog timouts
+to enable safe use in Serial configuration and default to Open relays on
+com loss.
+
+Mode 3 firmware, documentation and instructions with additional cost in Pro version
+only.
+
 ## Ressources
 
 LCElectronics portal
