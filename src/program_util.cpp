@@ -29,25 +29,5 @@
   */
 
 #include <avr/io.h>
-#include "program_io.h"
-
-void set_k1(bool value_in) {value_in ? (PORTA |= (1 << PA7)) : (PORTA &= ~(1 << PA7));}
-void set_k2(bool value_in) {value_in ? (PORTA |= (1 << PA6)) : (PORTA &= ~(1 << PA6));}
-void set_k3(bool value_in) {value_in ? (PORTA |= (1 << PA5)) : (PORTA &= ~(1 << PA5));}
-void set_k4(bool value_in) {value_in ? (PORTA |= (1 << PA4)) : (PORTA &= ~(1 << PA4));}
-
-void set_k1234(unsigned int vin) {
-  PORTA |= (vin & 0x0f);
-  PORTA &= (vin & 0xff);
-}
-
-void toggle_k1() {PORTA ^= (1 << PA7);}
-void toggle_k2() {PORTA ^= (1 << PA6);}
-void toggle_k3() {PORTA ^= (1 << PA5);}
-void toggle_k4() {PORTA ^= (1 << PA4);}
-
-bool read_sw1() {return (PINA & (1<<PA3));}
-bool read_sw2() {return (PINA & (1<<PA2));}
-bool read_sw3() {return (PINA & (1<<PA1));}
-bool read_sw4() {return (PINA & (1<<PA0));}
+#include "program_util.h"
 

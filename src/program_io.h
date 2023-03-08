@@ -5,6 +5,9 @@ void set_k1(bool);
 void set_k2(bool);
 void set_k3(bool);
 void set_k4(bool);
+
+void set_k1234(unsigned int);
+
 void toggle_k1();
 void toggle_k2();
 void toggle_k3();

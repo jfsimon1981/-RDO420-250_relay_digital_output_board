@@ -129,14 +129,6 @@ void program_loop() {
   // ************* Main program loop *************
 
   while (1) {
-    // uint8_t state = 0;
-    // I2C
-/*
-    if (i2c_buffer_index > 0) {
-      i2c_buffer_index = 0;
-      fast_blinker_pa6(3);
-    }
-*/
 
     // Read I2C
     char c;
@@ -144,27 +136,12 @@ void program_loop() {
     while (usiTwiAmountDataInReceiveBuffer() > 0) {
       c = usiTwiReceiveByte();
       // usiTwiTransmitByte(c);
-//      fast_blinker_pa6(1);
     }
 
     if (test_i2c_rx) {
       test_i2c_rx = 0;
       fast_blinker_pa6(1);
     }
-
-    // Flash LED slowly
-    /*{
-      const uint32_t t_on = 130, t_per = 170000;
-      static uint32_t t = 0;
-      if (!t)
-        PORTB |= (1 << PB6);  // Led on
-      else if (t == t_on)
-        PORTB &= ~(1 << PB6); // Led off
-      if (t < t_per)
-        t++;
-      else
-        t = 0;
-    }*/
 
     /*
       // Mode 1 Direct
