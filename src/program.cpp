@@ -9,9 +9,10 @@
 #include "usiTwiSlave.h"
 
 // Define DEBUG and other flags as necessary
-#ifdef DEBUG
-#define TIMER0_PULSE 1 // Put LED on PA3 (SW1 on port)
-#define CHECK_XTAL_FREQUENCY 1
+#ifdef DEBUG                    // Define in make -DDEBUG
+#define TIMER0_PULSE 1          // Place LED on PA3 (SW1 on port)
+#define CHECK_XTAL_FREQUENCY 0  // Runs infinite loop, pulse 1s
+#define SHOW_LEDS_ON_STARTUP 0  // Briefly shows-up LEDs on startup (muxed with relays)
 
 // Use PA3 to display blink led (MCU alive)
 void init_led() {DDRA |= (1 << DDA3);}
@@ -76,6 +77,7 @@ ISR (TIMER0_COMPA_vect) {
 void program_loop() {
 
 #ifdef DEBUG
+#if SHOW_LEDS_ON_STARTUP == 1
   init_led();
   set_led();
   display_4bits(0xff);
@@ -83,12 +85,13 @@ void program_loop() {
   clr_led();
   display_4bits(0x00);
 #endif
+#endif
 
 #ifdef DEBUG
 #if CHECK_XTAL_FREQUENCY == 1
   // Test time accuracy
   while (1) {
-    PORTA ^= (1 << PA6);
+    PORTA ^= (1 << PA7);
     _delay_ms(500);
   }
 #endif
