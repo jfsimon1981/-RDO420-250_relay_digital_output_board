@@ -33,16 +33,6 @@
  * 
  */
 
-void blink_k4() {
-  for (int j = 0; j < 10; j++) {
-    toggle_k4();
-    delay_ms(50);
-  }
-}
-
-void fast_blinker(int);
-void fast_blinker_pa6(int);
-
 void init_timer0() {
   TCCR0A = (1 << CTC0); // 8 bits width, CTC mode
   TCCR0B = (1 << CS02) | (0 << CS01) | (1 << CS00); // Prescaler 101 = 1:1024
@@ -71,30 +61,7 @@ ISR (TIMER0_COMPA_vect) {
 #endif
 }
 
-void fast_blinker(int n) {
-  for (int i = 0; i < n; i++) {
-      PORTA ^= (1 << PA7);
-      _delay_ms(7);
-  }
-}
-
-void fast_blinker_pa6(int n) {
-  PORTA &= (0 << PA6);
-  for (int i = 0; i < n; i++) {
-      PORTA |= (1 << PA6);
-      _delay_ms(100);
-      PORTA &= (0 << PA6);
-      _delay_ms(100);
-  }
-  PORTA &= (0 << PA6);
-}
-
-// #Interrupt test section
-
-int test_i2c_rx = 0;
 void program_loop() {
-
-  fast_blinker_pa6(1);
 
 /*
   // Test time accuracy
@@ -106,6 +73,7 @@ void program_loop() {
 
   const uint8_t slave_address = 0x41; // I2C address
 
+  //while (1)
   {
     display_4bits(slave_address);
     _delay_ms(500);
@@ -117,10 +85,6 @@ void program_loop() {
   usiTwiSlaveInit(slave_address);
   init_timer0();
   sei(); // interrupt enable
-
-  fast_blinker_pa6(1);
-
-//  fast_blinker_pa6(3);
 
   /*if(usiTwiDataInReceiveBuffer()) {
 		  uint16_t v;
@@ -146,11 +110,6 @@ void program_loop() {
     while (usiTwiAmountDataInReceiveBuffer() > 0) {
       c = usiTwiReceiveByte();
       // usiTwiTransmitByte(c);
-    }
-
-    if (test_i2c_rx) {
-      test_i2c_rx = 0;
-      fast_blinker_pa6(1);
     }
 
     /*

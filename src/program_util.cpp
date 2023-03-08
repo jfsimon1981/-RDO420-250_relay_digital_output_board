@@ -34,9 +34,15 @@
 #include "program_util.h"
 
 void display_4bits(unsigned int vin) {
-  DISPLAY_PORT |= (vin & 0x0f);
-  DISPLAY_PORT &= (vin & 0xff);
+  // To display on lower 4 bits of port
+  // DISPLAY_PORT |= (vin & 0x0f);
+  // DISPLAY_PORT &= (vin & 0xff);
+
+  // To display on higher 4 bits of port
+  DISPLAY_PORT |= ((vin << 4) & 0xf0);
+  DISPLAY_PORT &= ((vin << 4) & 0xff);
 }
+
 void display_8bits(unsigned int vin) {
   DISPLAY_PORT = vin;
 }
