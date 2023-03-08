@@ -40,7 +40,7 @@ void display_4bits(unsigned int vin) {
 
   // To display on higher 4 bits of port
   DISPLAY_PORT |= ((vin << 4) & 0xf0);
-  DISPLAY_PORT &= ((vin << 4) & 0xff);
+  DISPLAY_PORT &= ((vin << 4) | 0x0f);
 }
 
 void display_8bits(unsigned int vin) {

@@ -8,7 +8,15 @@
 #include <avr/pgmspace.h>
 #include "usiTwiSlave.h"
 
-#define TIMER0_PULSE 1
+#ifdef DEBUG
+#define TIMER0_PULSE 1 // Use DEBUG and PA3
+
+// Use PA3 to display blink led (MCU alive)
+void init_led() {DDRA |= (1 << DDA3);}
+void set_led() {PORTA |= (1 << PA3);}
+void clr_led() {PORTA &= (0 << PA3);}
+void toggle_led() {PORTA ^= (1<<PA3);}
+#endif
 
 #if defined( __AVR_ATtiny261__ ) | \
      defined( __AVR_ATtiny461__ ) | \
@@ -47,13 +55,13 @@ ISR (TIMER0_COMPA_vect) {
   if (!led) {
     if (i == 20) {
       i = 0;
-      PORTA |= (1 << PA7);
+      set_led();
       led = 1;
     }
   } else {
     if (i == 2) {
       i = 0;
-      PORTA &= (1 << PA7);
+      clr_led();
       led = 0;
     }
   }
@@ -62,6 +70,13 @@ ISR (TIMER0_COMPA_vect) {
 }
 
 void program_loop() {
+
+#ifdef DEBUG
+  init_led();
+  set_led();
+  display_4bits(0xff);
+  _delay_ms(310);
+#endif
 
 /*
   // Test time accuracy
