@@ -8,8 +8,10 @@
 #include <avr/pgmspace.h>
 #include "usiTwiSlave.h"
 
+// Define DEBUG and other flags as necessary
 #ifdef DEBUG
-#define TIMER0_PULSE 1 // Use DEBUG and PA3
+#define TIMER0_PULSE 1 // Put LED on PA3 (SW1 on port)
+#define CHECK_XTAL_FREQUENCY 1
 
 // Use PA3 to display blink led (MCU alive)
 void init_led() {DDRA |= (1 << DDA3);}
@@ -49,6 +51,7 @@ void init_timer0() {
 }
 
 ISR (TIMER0_COMPA_vect) {
+#ifdef DEBUG
 #if TIMER0_PULSE == 1
   static unsigned int led = 0;
   static unsigned int i = 0;
@@ -67,6 +70,7 @@ ISR (TIMER0_COMPA_vect) {
   }
   i++;
 #endif
+#endif
 }
 
 void program_loop() {
@@ -80,13 +84,15 @@ void program_loop() {
   display_4bits(0x00);
 #endif
 
-/*
+#ifdef DEBUG
+#if CHECK_XTAL_FREQUENCY == 1
   // Test time accuracy
   while (1) {
     PORTA ^= (1 << PA6);
     _delay_ms(500);
   }
-*/
+#endif
+#endif
 
   const uint8_t slave_address = 0x41; // I2C address
 
