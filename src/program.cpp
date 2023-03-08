@@ -76,6 +76,8 @@ void program_loop() {
   set_led();
   display_4bits(0xff);
   _delay_ms(310);
+  clr_led();
+  display_4bits(0x00);
 #endif
 
 /*
