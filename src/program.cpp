@@ -21,21 +21,6 @@ void clr_led() {PORTA &= ((1 << PA3) ^ 0xff);}
 void toggle_led() {PORTA ^= (1<<PA3);}
 #endif
 
-#if defined( __AVR_ATtiny261__ ) | \
-     defined( __AVR_ATtiny461__ ) | \
-     defined( __AVR_ATtiny861__ )
-#  define DDR_USI             DDRB
-#  define PORT_USI            PORTB
-#  define PIN_USI             PINB
-#  define PORT_USI_SDA        PB0
-#  define PORT_USI_SCL        PB2
-#  define PIN_USI_SDA         PINB0
-#  define PIN_USI_SCL         PINB2
-#  define USI_START_COND_INT  USISIF
-#  define USI_START_VECTOR    USI_START_vect
-#  define USI_OVERFLOW_VECTOR USI_OVF_vect
-#endif
-
 /*
  * Jumpers 1-3 define I2C address: 0x41/43/45/47
  * I2C exhange specs
@@ -77,11 +62,11 @@ ISR (TIMER0_COMPA_vect) {
 void program_loop() {
 
 #ifdef DEBUG
-#if SHOW_LEDS_ON_STARTUP == 1
   init_led();
+#if SHOW_LEDS_ON_STARTUP == 1
   set_led();
   display_4bits(0xff);
-  _delay_ms(310);
+  _delay_ms(503);
   clr_led();
   display_4bits(0x00);
 #endif
