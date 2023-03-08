@@ -14,7 +14,7 @@
 // Use PA3 to display blink led (MCU alive)
 void init_led() {DDRA |= (1 << DDA3);}
 void set_led() {PORTA |= (1 << PA3);}
-void clr_led() {PORTA &= (0 << PA3);}
+void clr_led() {PORTA &= ((1 << PA3) ^ 0xff);}
 void toggle_led() {PORTA ^= (1<<PA3);}
 #endif
 
@@ -87,15 +87,6 @@ void program_loop() {
 */
 
   const uint8_t slave_address = 0x41; // I2C address
-
-  {
-    display_4bits(slave_address >> 4);
-    _delay_ms(500);
-    display_4bits(slave_address);
-    _delay_ms(500);
-    display_4bits(0);
-    _delay_ms(1000);
-  }
 
   usiTwiSlaveInit(slave_address);
   init_timer0();

@@ -28,6 +28,19 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   */
 
+  /*
+   * Usage example
+   * Example display 8 bits high, low
+   */
+
+/*
+  display_4bits(slave_address >> 4);
+  _delay_ms(500);
+  display_4bits(slave_address);
+  _delay_ms(500);
+  display_4bits(0);
+*/
+
 #define DISPLAY_PORT PORTA
 
 #include <avr/io.h>
