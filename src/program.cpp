@@ -47,13 +47,13 @@ ISR (TIMER0_COMPA_vect) {
   if (!led) {
     if (i == 20) {
       i = 0;
-      PORTA |= (1 << PA6);
+      PORTA |= (1 << PA7);
       led = 1;
     }
   } else {
     if (i == 2) {
       i = 0;
-      PORTA &= (1 << PA6);
+      PORTA &= (1 << PA7);
       led = 0;
     }
   }
@@ -73,13 +73,13 @@ void program_loop() {
 
   const uint8_t slave_address = 0x41; // I2C address
 
-  //while (1)
   {
-    display_4bits(slave_address);
-    _delay_ms(500);
     display_4bits(slave_address >> 4);
     _delay_ms(500);
+    display_4bits(slave_address);
+    _delay_ms(500);
     display_4bits(0);
+    _delay_ms(1000);
   }
 
   usiTwiSlaveInit(slave_address);
