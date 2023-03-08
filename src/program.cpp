@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include "program_io.h"
 #include "program_time.h"
+#include "program_util.h"
 
 // Includes for I2C
 #include <avr/interrupt.h>
@@ -104,6 +105,15 @@ void program_loop() {
 */
 
   const uint8_t slave_address = 0x41; // I2C address
+
+  {
+    display_4bits(slave_address);
+    _delay_ms(500);
+    display_4bits(slave_address >> 4);
+    _delay_ms(500);
+    display_4bits(0);
+  }
+
   usiTwiSlaveInit(slave_address);
   init_timer0();
   sei(); // interrupt enable

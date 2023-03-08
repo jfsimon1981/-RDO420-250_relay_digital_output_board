@@ -28,6 +28,15 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   */
 
+#define DISPLAY_PORT PORTA
+
 #include <avr/io.h>
 #include "program_util.h"
 
+void display_4bits(unsigned int vin) {
+  DISPLAY_PORT |= (vin & 0x0f);
+  DISPLAY_PORT &= (vin & 0xff);
+}
+void display_8bits(unsigned int vin) {
+  DISPLAY_PORT = vin;
+}
