@@ -29,6 +29,12 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   */
 
+// Configuration
+
+#define LCD_ENABLE 1
+
+// Pins for Arduino board
+
 #define UEXT_PWR_E      8 // External power to UEXT
 #define USER_LED_GREEN  7 // User led: green
 #define USER_LED_YELLOW 9 // User led: yellow
@@ -37,56 +43,32 @@
 #include <LCD1x9.h>
 #include <Wire.h>
 
-class chrys {
-  public:
-    // Accessors for peripheral relay at port.num
-    void relay_close(int port, int num); // Close coil loop
-    void relay_open(int port, int num);  // Open coil loop
-    int relay_state(int port, int num);  // Returns state
-};
-
-#ifdef LCD_ENABLE
+#if LCD_ENABLE == 1
 LCD1x9 lcd;
 #endif
 // SoftwareSerial serial (0, 1); // RX, TX
 
-void int_setup(){
-
-cli();//stop interrupts
-//set timer1 interrupt at 1Hz
+void interrupt_setup() {
+  cli(); // Stop interrupts
+  // Set timer1 interrupt at 1Hz
   TCCR1A = 0;// set entire TCCR1A register to 0
   TCCR1B = 0;// same for TCCR1B
   TCNT1  = 0;//initialize counter value to 0
   // set compare match register for 1hz increments
-//OCR1A = 15624;// = (16*10^6) / (1*1024) - 1 (must be <65536)
+  // OCR1A = 15624;// = (16*10^6) / (1*1024) - 1 (must be <65536)
   OCR1A = 624; // 25 Hz
-  // turn on CTC mode
-  TCCR1B |= (1 << WGM12);
-  // Set CS10 and CS12 bits for 1024 prescaler
-  TCCR1B |= (1 << CS12) | (1 << CS10);  
-  // enable timer compare interrupt
-  TIMSK1 |= (1 << OCIE1A);
-
-sei();//allow interrupts
+  TCCR1B |= (1 << WGM12); // turn on CTC mode
+  TCCR1B |= (1 << CS12) | (1 << CS10); // Set CS10 and CS12 bits for 1024 prescaler
+  TIMSK1 |= (1 << OCIE1A); // enable timer compare interrupt
+  sei(); // Allow interrupts
 }
 
 long unsigned int t1 {0};
-//timer1 interrupt 1Hz toggles pin 13 (LED)
-//generates pulse wave of frequency 1Hz/2 = 0.5kHz
-// (takes two cycles for full wave- toggle high then toggle low)
+
 ISR(TIMER1_COMPA_vect) {
   t1++;
   Serial.print(".");
 }
-
-/*
-  // Delme
-              Pins Attiny461
-    Bleu    a 2
-    Blanc   b 3
-    Jaune   c 10
-    Vert    d 1............
-*/
 
 // the setup function runs once when you press reset or power the board
 void setup() {
@@ -99,7 +81,7 @@ void setup() {
   // I2C, SDA,SCL
   Wire.begin(1);
   delay(3);
-#ifdef LCD_ENABLE
+#if LCD_ENABLE == 1
   lcd.initialize();
 #endif
 
@@ -109,37 +91,89 @@ void setup() {
   while (!Serial);
 //while (!Serial1);
 
-  int_setup();
+  interrupt_setup();
 }
 
-void i2c_send(uint8_t relay) {
-  Serial.print(relay, HEX);
+/*
+ * Set Relay I2C address by DIP switch 1-2-3 to for 0x41/43/45/47
+ * Control via local push-buttons or I2C commands
+ */
+
+// Relay address
+
+#define RELAY_BOARD_1_ADDRESS 0x41
+
+// Relays number
+
+#define RELAY_K1                1   // Designator for relay K1
+#define RELAY_K2                2   // Designator for relay K2
+#define RELAY_K3                3   // Designator for relay K3
+#define RELAY_K4                4   // Designator for relay K4 
+
+// Main control commands
+
+#define CMD_OPEN                1   // Open a relay. pass relay number in param. No option.
+#define CMD_CLOSE               2   // Close a relay. pass relay number in param. No option.
+#define CMD_TOGGLE              3   // Toggle a relay. pass relay number in param. No option.
+#define CMD_CLOSE_PULSE         4   // Close a relay. pass relay number in param. Pulse duration in opt or leave 0 for default.
+#define CMD_OPEN_PULSE          5   // Open a relay. pass relay number in param. Pulse duration in opt or leave 0 for default.
+#define CMD_CLOSE_ALL_RELAYS    6   // Close all relays. No option.
+#define CMD_OPEN_ALL_RELAYS     7   // Open all relays. No option.
+
+// Configuration and emergency off
+
+#define SET_PULSE_DURATION      8   // Set pulse duration in seconds (1 ... 4294967296)
+#define SET_ENABLE_LOCAL_CTRL   9   // Enable coil open/close from board. No option.
+#define SET_DISABLE_LOCAL_CTRL  10  // Disable coil open/close from board. No option.
+#define SET_ENABLE_REMOTE_CTRL  11  // Enable coil open/close from remote. No option.
+#define SET_DISABLE_REMOTE_CTRL 12  // Disable coil open/close from remote. No option.
+#define SET_EMERGENCY_OFF       13  // Open all coils and locks board. Requires local reset to restart operation.
+
+// Read-back
+
+#define READ_RELAY_POSITION     23  // Reads relay position (1 for open, 2 for close)
+#define READ_STATUS             24  // Reads board status
+#define READ_PORT               25  // Reads board port (PA7-0 k1 k2 k3 k4 s1 s2 s3 s4)
+
+#define RELAY_IS_OPEN           1   // Returned value if coil is open.
+#define RELAY_IS_CLOSED         2   // Returned value if coil is closed.
+
+// Status
+
+#define STATUS_BITS_AVAILABLE   0   // Board in available
+#define STATUS_BITS_COM_ERROR   1   // A serial communication error occured
+#define STATUS_BITS_LOC_CTRL_EN 2   // Local control enabled
+#define STATUS_BITS_REM_CTRL_EN 3   // Remote control enabled
+#define STATUS_BITS_IS_EOFF     4   // Is in Emergency Off state (local reset required)
+
+// Send a command to relay. Option data (set_pulse_duration)
+void i2c_test_relay(uint8_t relay_num) {
+  Serial.print(relay_num, HEX);
+
   // Close relay
-  Wire.beginTransmission(0x41); // 0100 xxx1
-  Wire.write(byte(relay)); // Relays K1
-  Wire.write(byte(0x01)); // Close
-  Wire.write(byte(0xff)); // Terminate
+  Wire.beginTransmission(RELAY_BOARD_1_ADDRESS); // 0100 xxx1
+  Wire.write(byte(CMD_CLOSE));  // Close
+  Wire.write(byte(relay_num));  // Relays Kn
   Wire.endTransmission();
-  delay(200);
+  delay(370);
 
   // Open relay
-  Wire.beginTransmission(0x41); // 0100 xxx1
-  Wire.write(byte(relay)); // Relays K1
-  Wire.write(byte(0x00)); // Open
-  Wire.write(byte(0xff)); // Terminate
+  Wire.beginTransmission(RELAY_BOARD_1_ADDRESS); // 0100 xxx1
+  Wire.write(byte(CMD_OPEN));   // Open
+  Wire.write(byte(relay_num));  // Relays Kn
   Wire.endTransmission();
-  delay(200);
+  delay(370);
 }
 
 void loop() {
-  i2c_send(0x01); // Toggle K1
-  i2c_send(0x02); // Toggle K2
-  i2c_send(0x03); // Toggle K3
-  i2c_send(0x04); // Toggle K4
+  i2c_test_relay(RELAY_K1); // Toggle K1
+  i2c_test_relay(RELAY_K2); // Toggle K2
+  i2c_test_relay(RELAY_K3); // Toggle K3
+  i2c_test_relay(RELAY_K4); // Toggle K4
   // Green
   digitalWrite(USER_LED_GREEN, HIGH);
   digitalWrite(USER_LED_YELLOW, LOW);
-#ifdef LCD_ENABLE
+#if LCD_ENABLE == 1
   lcd.write((char*)("Green"));
 #endif
   Serial.println("Green");
@@ -148,7 +182,7 @@ void loop() {
   // Yellow
   digitalWrite(USER_LED_GREEN, LOW);
   digitalWrite(USER_LED_YELLOW, HIGH);
-#ifdef LCD_ENABLE
+#if LCD_ENABLE == 1
   lcd.write((char*)("Yellow"));
 #endif
   Serial.print("Yellow (timer ");

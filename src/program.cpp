@@ -2,6 +2,7 @@
 #include "program_io.h"
 #include "program_time.h"
 #include "program_util.h"
+#include "definitions_relays.h"
 
 // Includes for I2C
 #include <avr/interrupt.h>
@@ -13,26 +14,21 @@
 #define TIMER0_PULSE 1          // Place LED on PA3 (SW1 on port)
 #define CHECK_XTAL_FREQUENCY 0  // Runs infinite loop, pulse 1s
 #define SHOW_LEDS_ON_STARTUP 0  // Briefly shows-up LEDs on startup (muxed with relays)
-
-// Use PA3 to display blink led (MCU alive)
-void init_led() {DDRA |= (1 << DDA3);}
-void set_led() {PORTA |= (1 << PA3);}
-void clr_led() {PORTA &= ((1 << PA3) ^ 0xff);}
-void toggle_led() {PORTA ^= (1<<PA3);}
 #endif
+
+#define UNUSED(expr) do { (void)(expr); } while (0)
 
 /*
  * Jumpers 1-3 define I2C address: 0x41/43/45/47
  * I2C exhange specs
  * Write relay number: 0x01 ... 0x04 to send a command to relay followed by
  * 0x00 for off or 0x01 for on. Terminate (0xff).
- * 
  */
 
 void init_timer0() {
   TCCR0A = (1 << CTC0); // 8 bits width, CTC mode
   TCCR0B = (1 << CS02) | (0 << CS01) | (1 << CS00); // Prescaler 101 = 1:1024
-  OCR0A = 0x40;
+  OCR0A = 0x80;
   TIMSK = (1 << OCIE0A); // CompA Interrupt Enable
 }
 
@@ -42,15 +38,15 @@ ISR (TIMER0_COMPA_vect) {
   static unsigned int led = 0;
   static unsigned int i = 0;
   if (!led) {
-    if (i == 20) {
+    if (i == 80) {
       i = 0;
-      set_led();
+      SET_LED();
       led = 1;
     }
   } else {
-    if (i == 2) {
+    if (i == 4) {
       i = 0;
-      clr_led();
+      CLR_LED();
       led = 0;
     }
   }
@@ -62,12 +58,12 @@ ISR (TIMER0_COMPA_vect) {
 void program_loop() {
 
 #ifdef DEBUG
-  init_led();
+  INIT_LED();
 #if SHOW_LEDS_ON_STARTUP == 1
-  set_led();
+  SET_LED();
   display_4bits(0xff);
   _delay_ms(503);
-  clr_led();
+  CLR_LED();
   display_4bits(0x00);
 #endif
 #endif
@@ -106,13 +102,70 @@ void program_loop() {
 
   while (1) {
 
+  #ifdef DEBUG
+  // Shows up some data on LEDs
+  if (0) {
+    #define RS (USIDR >> 1) // Clock hold 1-0
+    static uint16_t i = 0;
+    if (i++ == 5000) {
+    i = 0;
+        char c = (RS & 0x0f);
+        static char d = 0;
+        if (c!=d)
+          display_4bits(c);
+        d = c;
+    }
+  }
+  #endif
+
+    if (usiTwiAmountDataInReceiveBuffer() >= 2) {
+      char cmd   = 0; // Command
+      char relay = 0; // Relay number
+      char opt   = 0; // Optional
+      UNUSED(opt);
+      char rcv[3];
+      for (int i = 0; i < 3; i++)
+        rcv[i] = 0;
+      int index = 0;
+      // Receive
+      while (usiTwiAmountDataInReceiveBuffer() > 0) {
+        rcv[index++] = usiTwiReceiveByte();
+        if (index == 3) {
+          // set_error(TOO_MANY_DATA);
+          break;
+        }
+      }
+      // Decode
+      cmd = rcv[0];
+      relay = rcv[1];
+      opt = rcv[2];
+
+      if ((cmd == CMD_OPEN) && (relay == RELAY_K1)) {set_k1(0);}
+      else if ((cmd == CMD_OPEN) && (relay == RELAY_K2)) {set_k2(0);}
+      else if ((cmd == CMD_OPEN) && (relay == RELAY_K3)) {set_k3(0);}
+      else if ((cmd == CMD_OPEN) && (relay == RELAY_K4)) {set_k4(0);}
+      else if ((cmd == CMD_CLOSE) && (relay == RELAY_K1)) {set_k1(1);}
+      else if ((cmd == CMD_CLOSE) && (relay == RELAY_K2)) {set_k2(1);}
+      else if ((cmd == CMD_CLOSE) && (relay == RELAY_K3)) {set_k3(1);}
+      else if ((cmd == CMD_CLOSE) && (relay == RELAY_K4)) {set_k4(1);}
+      else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K1)) {toggle_k1();}
+      else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K2)) {toggle_k2();}
+      else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K3)) {toggle_k3();}
+      else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K4)) {toggle_k4();}
+      else {/*set_error(UNKNOWN_REQUEST);*/}
+    }
+
+
     // Read I2C
+/*
     char c;
     c++;
     while (usiTwiAmountDataInReceiveBuffer() > 0) {
       c = usiTwiReceiveByte();
       // usiTwiTransmitByte(c);
+      display_4bits(c);
     }
+*/
 
     /*
       // Mode 1 Direct

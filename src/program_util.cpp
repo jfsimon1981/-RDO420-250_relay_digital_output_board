@@ -31,20 +31,18 @@
   /*
    * Usage example
    * Example display 8 bits high, low
+
+   * display_4bits(slave_address >> 4);
+   * _delay_ms(500);
+   * display_4bits(slave_address);
+   * _delay_ms(500);
+   * display_4bits(0);
    */
-
-/*
-  display_4bits(slave_address >> 4);
-  _delay_ms(500);
-  display_4bits(slave_address);
-  _delay_ms(500);
-  display_4bits(0);
-*/
-
-#define DISPLAY_PORT PORTA
 
 #include <avr/io.h>
 #include "program_util.h"
+
+#define DISPLAY_PORT PORTA
 
 void display_4bits(unsigned int vin) {
   // To display on lower 4 bits of port
