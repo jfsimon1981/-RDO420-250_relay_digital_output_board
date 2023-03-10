@@ -58,7 +58,8 @@ uint8_t usiTwiAmountDataInReceiveBuffer(void);
 //void    (*usi_onRequestPtr)(void);
 //void    (*usi_onReceiverPtr)(uint8_t);
 
-void usi_twi_set_state_idle();
+void usi_twi_set_state_idle();     // Set I2C state to Idle
+uint8_t usi_twi_buffer_data(void); // Read act buffer data, do not modify stack pointer
 
 /********************************************************************************
 

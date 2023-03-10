@@ -47,4 +47,9 @@
       commands are received.
     - Ensure disambiguation between commands and relay numbers
 
+  V1.current
+
+  Improvements
+    - Increase I2C transaction reliability
+
   */

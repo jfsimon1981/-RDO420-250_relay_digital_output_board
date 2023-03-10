@@ -83,7 +83,7 @@ ISR (BADISR_vect) {
   }
 }
 
-#define I2C_TIMEOUT 7 // Unit is approx 1/100s
+#define I2C_TIMEOUT 15 // Unit is approx 1/10s
 
 ISR (TIMER0_COMPA_vect) {
   static int i2c_timeout = 0;
@@ -174,6 +174,17 @@ void program_loop() {
   }
   #endif
 
+    if (usiTwiAmountDataInReceiveBuffer() == 1) {
+      uint8_t bd = usi_twi_buffer_data();
+      if (!bd || (bd > 0x40)) {
+        // Error, not a command
+        // Flush and init
+        while (usiTwiAmountDataInReceiveBuffer())
+          usiTwiReceiveByte();
+        usiTwiSlaveInit();
+      }
+    }
+
     if (usiTwiAmountDataInReceiveBuffer() >= 2) {
       char cmd   = 0; // Command
       char relay = 0; // Relay number
@@ -219,7 +230,7 @@ void program_loop() {
         usiTwiReceiveByte();
 
       // Return line to idle state
-      overflowState = USI_SLAVE_IDLE;
+     // overflowState = USI_SLAVE_IDLE;
     }
 
     #ifndef DEBUG

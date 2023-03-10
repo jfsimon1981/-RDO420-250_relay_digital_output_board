@@ -376,6 +376,7 @@ uint8_t usiTwiReceiveByte(void) {
   // TODO Implement timeout
 
   rv = rxBuf[rxTail];
+  rxBuf[rxTail] = 0;
   // calculate buffer index
   rxTail = (rxTail + 1) & TWI_RX_BUFFER_MASK;
   rxCount--;
@@ -568,4 +569,8 @@ overflowState = USI_SLAVE_IDLE;
 
 void usi_twi_set_state_idle() {
   overflowState = USI_SLAVE_IDLE;
+}
+
+uint8_t usi_twi_buffer_data(void) {
+  return rxBuf[rxTail];
 }
