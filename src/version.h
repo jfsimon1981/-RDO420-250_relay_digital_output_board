@@ -30,7 +30,11 @@
 
   /*
 
-  V1.0 Friday 10/3/23
+  V1.0 Thursday 9/3/23
+
+  Pre-release
+
+  V1.1 Friday 10/3/23
 
   Features
     - I2C on fixed address firmware programmed to 0x41

@@ -55,3 +55,15 @@ only.
 LCElectronics portal
   - [Home](http://lecomptoirelectronique.fr/store)
   - [Product page RDO420-250](http://lecomptoirelectronique.fr/store/index.php?route=product/product&path=66&product_id=65)
+
+## Updates
+
+  - V1.1 Friday 10/3/23
+    - Features
+      - I2C on fixed address firmware programmed to 0x41
+      - Remote relay control via I2C
+      - Local push-buttons relay control in toggle mode
+      - Ports also available for hardwire push-buttons
+    - Fixes
+      - Introduce a timeout on I2C states to reset after approx 5ms if not further commands are received.
+      - Ensure disambiguation between commands and relay numbers
