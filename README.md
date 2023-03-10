@@ -57,7 +57,8 @@ LCElectronics portal
   - [Product page RDO420-250](http://lecomptoirelectronique.fr/store/index.php?route=product/product&path=66&product_id=65)
 
 ## Updates
-
+  - V1.0 Thursday 9/3/23
+    - Pre-release
   - V1.1 Friday 10/3/23
     - Features
       - I2C on fixed address firmware programmed to 0x41
