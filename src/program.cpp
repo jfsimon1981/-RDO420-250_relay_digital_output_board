@@ -84,20 +84,6 @@ void program_loop() {
   init_timer0();
   sei(); // interrupt enable
 
-  /*if(usiTwiDataInReceiveBuffer()) {
-		  uint16_t v;
-		  adc_code_t code = (adc_code_t)usiTwiReceiveByte();
-		  if( code == RADCT ) {
-			  PORTB &= ~(1<<PB6);
-			  v = read_temp();
-		  }
-		  else {
-			  v = read_adc((uint8_t)code);
-		  }
-		  usiTwiTransmitByte((uint8_t)v);
-		  usiTwiTransmitByte((uint8_t)(v >> 8));
-	  }*/
-
   // ************* Main program loop *************
 
   while (1) {
@@ -153,20 +139,9 @@ void program_loop() {
       else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K3)) {toggle_k3();}
       else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K4)) {toggle_k4();}
       else {/*set_error(UNKNOWN_REQUEST);*/}
+      // usiTwiTransmitByte((uint8_t)v;
     }
-
-
-    // Read I2C
-/*
-    char c;
-    c++;
-    while (usiTwiAmountDataInReceiveBuffer() > 0) {
-      c = usiTwiReceiveByte();
-      // usiTwiTransmitByte(c);
-      display_4bits(c);
-    }
-*/
-
+    #ifndef DEBUG
     /*
       // Mode 1 Direct
       set_k1(!read_sw1());
@@ -175,7 +150,8 @@ void program_loop() {
       set_k4(!read_sw4());
     */
     // Mode 2 Toggle
-    if (0) {
+
+    if (1) {
       bool sw1 = read_sw1();
       bool sw2 = read_sw2();
       bool sw3 = read_sw3();
@@ -196,6 +172,7 @@ void program_loop() {
         delay_ms(150);
       }
     }
+    #endif
   }
 }
 
