@@ -83,7 +83,7 @@ ISR (BADISR_vect) {
   }
 }
 
-#define I2C_TIMEOUT 3 // Unit is approx 1/100s
+#define I2C_TIMEOUT 7 // Unit is approx 1/100s
 
 ISR (TIMER0_COMPA_vect) {
   static int i2c_timeout = 0;
