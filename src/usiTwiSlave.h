@@ -29,12 +29,8 @@ Change Activity:
 
 ********************************************************************************/
 
-
-
 #ifndef _USI_TWI_SLAVE_H_
 #define _USI_TWI_SLAVE_H_
-
-
 
 /********************************************************************************
 
@@ -44,24 +40,25 @@ Change Activity:
 
 #include <stdbool.h>
 
-
-
 /********************************************************************************
 
                                    prototypes
 
 ********************************************************************************/
 
-void    usiTwiSlaveInit( uint8_t );
-void    usiTwiTransmitByte( uint8_t );
-uint8_t usiTwiReceiveByte( void );
-// bool    usiTwiDataInReceiveBuffer( void ); // Deleted
+void    usiTwiSlaveInit();
+void    usiTwiSlaveInit(uint8_t);
+void    usiTwiTransmitByte(uint8_t);
+uint8_t usiTwiReceiveByte(void);
+// bool    usiTwiDataInReceiveBuffer(void); // Deleted
 //void    (*_onTwiDataRequest)(void);
 bool    usiTwiDataInTransmitBuffer(void);
 uint8_t usiTwiAmountDataInReceiveBuffer(void);
 // on_XXX handler pointers
 //void    (*usi_onRequestPtr)(void);
 //void    (*usi_onReceiverPtr)(uint8_t);
+
+void usi_twi_set_state_idle();
 
 /********************************************************************************
 
@@ -91,6 +88,17 @@ uint8_t usiTwiAmountDataInReceiveBuffer(void);
 #  error TWI TX buffer size is not a power of 2
 #endif
 
+// I2C states used within driver and main program
 
+typedef enum {
+  USI_SLAVE_CHECK_ADDRESS                = 0x00,
+  USI_SLAVE_SEND_DATA                    = 0x01,
+  USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA = 0x02,
+  USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA   = 0x03,
+  USI_SLAVE_REQUEST_DATA                 = 0x04,
+  USI_SLAVE_GET_DATA_AND_SEND_ACK        = 0x05,
+  USI_SLAVE_ERROR                        = 0x80,
+  USI_SLAVE_IDLE                         = 0xff
+} overflowState_t;
 
 #endif  // ifndef _USI_TWI_SLAVE_H_

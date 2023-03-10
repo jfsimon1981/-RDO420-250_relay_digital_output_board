@@ -183,119 +183,93 @@ void    (*usi_onReceiverPtr)(uint8_t);
 
 ********************************************************************************/
 
-#define SET_USI_TO_SEND_ACK( ) \
-{ \
+#define SET_USI_TO_SEND_ACK() { \
   /* prepare ACK */ \
   USIDR = 0; \
   /* set SDA as output */ \
-  DDR_USI |= ( 1 << PORT_USI_SDA ); \
+  DDR_USI |= (1 << PORT_USI_SDA); \
   /* clear all interrupt flags, except Start Cond */ \
   USISR = \
-       ( 0 << USI_START_COND_INT ) | \
-       ( 1 << USIOIF ) | ( 1 << USIPF ) | \
-       ( 1 << USIDC )| \
+       (0 << USI_START_COND_INT) | \
+       (1 << USIOIF) | (1 << USIPF) | \
+       (1 << USIDC)| \
        /* set USI counter to shift 1 bit */ \
-       ( 0x0E << USICNT0 ); \
+       (0x0E << USICNT0); \
 }
 
-#define SET_USI_TO_READ_ACK( ) \
-{ \
+#define SET_USI_TO_READ_ACK() { \
   /* set SDA as input */ \
-  DDR_USI &= ~( 1 << PORT_USI_SDA ); \
+  DDR_USI &= ~(1 << PORT_USI_SDA); \
   /* prepare ACK */ \
   USIDR = 0; \
   /* clear all interrupt flags, except Start Cond */ \
   USISR = \
-       ( 0 << USI_START_COND_INT ) | \
-       ( 1 << USIOIF ) | \
-       ( 1 << USIPF ) | \
-       ( 1 << USIDC ) | \
+       (0 << USI_START_COND_INT) | \
+       (1 << USIOIF) | \
+       (1 << USIPF) | \
+       (1 << USIDC) | \
        /* set USI counter to shift 1 bit */ \
-       ( 0x0E << USICNT0 ); \
+       (0x0E << USICNT0); \
 }
 
-#define SET_USI_TO_TWI_START_CONDITION_MODE( ) \
-{ \
+#define SET_USI_TO_TWI_START_CONDITION_MODE() { \
   USICR = \
        /* enable Start Condition Interrupt, disable Overflow Interrupt */ \
-       ( 1 << USISIE ) | ( 0 << USIOIE ) | \
+       (1 << USISIE) | (0 << USIOIE) | \
        /* set USI in Two-wire mode, no USI Counter overflow hold */ \
-       ( 1 << USIWM1 ) | ( 0 << USIWM0 ) | \
+       (1 << USIWM1) | (0 << USIWM0) | \
        /* Shift Register Clock Source = External, positive edge */ \
        /* 4-Bit Counter Source = external, both edges */ \
-       ( 1 << USICS1 ) | ( 0 << USICS0 ) | ( 0 << USICLK ) | \
+       (1 << USICS1) | (0 << USICS0) | (0 << USICLK) | \
        /* no toggle clock-port pin */ \
-       ( 0 << USITC ); \
+       (0 << USITC); \
   USISR = \
         /* clear all interrupt flags, except Start Cond */ \
-        ( 0 << USI_START_COND_INT ) | ( 1 << USIOIF ) | ( 1 << USIPF ) | \
-        ( 1 << USIDC ) | ( 0x0 << USICNT0 ); \
+        (0 << USI_START_COND_INT) | (1 << USIOIF) | (1 << USIPF) | \
+        (1 << USIDC) | (0x0 << USICNT0 ); \
 }
 
-#define SET_USI_TO_SEND_DATA( ) \
-{ \
+#define SET_USI_TO_SEND_DATA() { \
   /* set SDA as output */ \
-  DDR_USI |=  ( 1 << PORT_USI_SDA ); \
+  DDR_USI |=  (1 << PORT_USI_SDA); \
   /* clear all interrupt flags, except Start Cond */ \
   USISR    =  \
-       ( 0 << USI_START_COND_INT ) | ( 1 << USIOIF ) | ( 1 << USIPF ) | \
-       ( 1 << USIDC) | \
+       (0 << USI_START_COND_INT) | (1 << USIOIF) | (1 << USIPF) | \
+       (1 << USIDC) | \
        /* set USI to shift out 8 bits */ \
-       ( 0x0 << USICNT0 ); \
+       (0x0 << USICNT0); \
 }
 
-#define SET_USI_TO_READ_DATA( ) \
-{ \
+#define SET_USI_TO_READ_DATA() { \
   /* set SDA as input */ \
-  DDR_USI &= ~( 1 << PORT_USI_SDA ); \
+  DDR_USI &= ~(1 << PORT_USI_SDA); \
   /* clear all interrupt flags, except Start Cond */ \
   USISR    = \
-       ( 0 << USI_START_COND_INT ) | ( 1 << USIOIF ) | \
-       ( 1 << USIPF ) | ( 1 << USIDC ) | \
+       (0 << USI_START_COND_INT) | (1 << USIOIF) | \
+       (1 << USIPF) | (1 << USIDC) | \
        /* set USI to shift out 8 bits */ \
-       ( 0x0 << USICNT0 ); \
+       (0x0 << USICNT0); \
 }
 
-#define USI_RECEIVE_CALLBACK() \
-{ \
-    if (usi_onReceiverPtr) \
-    { \
-        if (usiTwiAmountDataInReceiveBuffer()) \
-        { \
+#define USI_RECEIVE_CALLBACK() { \
+    if (usi_onReceiverPtr) { \
+        if (usiTwiAmountDataInReceiveBuffer()) { \
             usi_onReceiverPtr(usiTwiAmountDataInReceiveBuffer()); \
         } \
     } \
 }
 
-#define ONSTOP_USI_RECEIVE_CALLBACK() \
-{ \
-    if (USISR & ( 1 << USIPF )) \
-    { \
+#define ONSTOP_USI_RECEIVE_CALLBACK() { \
+    if (USISR & (1 << USIPF)) { \
         USI_RECEIVE_CALLBACK(); \
     } \
 }
 
 
-#define USI_REQUEST_CALLBACK() \
-{ \
+#define USI_REQUEST_CALLBACK() { \
     USI_RECEIVE_CALLBACK(); \
     if(usi_onRequestPtr) usi_onRequestPtr(); \
 }
-
-/********************************************************************************
-
-                                   typedef's
-
-********************************************************************************/
-
-typedef enum {
-  USI_SLAVE_CHECK_ADDRESS                = 0x00,
-  USI_SLAVE_SEND_DATA                    = 0x01,
-  USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA = 0x02,
-  USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA   = 0x03,
-  USI_SLAVE_REQUEST_DATA                 = 0x04,
-  USI_SLAVE_GET_DATA_AND_SEND_ACK        = 0x05
-} overflowState_t;
 
 
 /********************************************************************************
@@ -305,7 +279,7 @@ typedef enum {
 ********************************************************************************/
 
 static uint8_t                  slaveAddress;
-static volatile overflowState_t overflowState;
+/*static*/ volatile overflowState_t overflowState; // JFS temp to read from program.cpp
 
 
 static uint8_t          rxBuf[ TWI_RX_BUFFER_SIZE ];
@@ -336,7 +310,6 @@ static void flushTwiBuffers (void) {
 } // end flushTwiBuffers
 
 
-
 /********************************************************************************
 
                                 public functions
@@ -345,10 +318,13 @@ static void flushTwiBuffers (void) {
 
 // initialise USI for TWI slave mode
 
+void usiTwiSlaveInit() {usiTwiSlaveInit(slaveAddress);}
+
 void usiTwiSlaveInit (uint8_t ownAddress) {
 
   flushTwiBuffers();
   slaveAddress = ownAddress;
+  overflowState = USI_SLAVE_IDLE;
 
   // In Two Wire mode (USIWM1, USIWM0 = 1X), the slave USI will pull SCL
   // low when a start condition is detected or a counter overflow (only
@@ -384,10 +360,10 @@ bool usiTwiDataInTransmitBuffer(void) {
 void usiTwiTransmitByte (uint8_t data) {
 //uint8_t tmphead;
   // wait for free space in buffer
-  while ( txCount == TWI_TX_BUFFER_SIZE) ;
+  while (txCount == TWI_TX_BUFFER_SIZE) ;
   // store data in buffer
-  txBuf[ txHead ] = data;
-  txHead = ( txHead + 1 ) & TWI_TX_BUFFER_MASK;
+  txBuf[txHead] = data;
+  txHead = (txHead + 1) & TWI_TX_BUFFER_MASK;
   txCount++;
 }
 
@@ -395,13 +371,13 @@ void usiTwiTransmitByte (uint8_t data) {
 uint8_t usiTwiReceiveByte(void) {
   uint8_t rv;
   // wait for Rx data
-  while ( !rxCount );
+  while (!rxCount);
 
-Implement timeout
+  // TODO Implement timeout
 
-  rv = rxBuf [ rxTail ];
+  rv = rxBuf[rxTail];
   // calculate buffer index
-  rxTail = ( rxTail + 1 ) & TWI_RX_BUFFER_MASK;
+  rxTail = (rxTail + 1) & TWI_RX_BUFFER_MASK;
   rxCount--;
   return rv;
 }
@@ -433,7 +409,6 @@ uint8_t usiTwiAmountDataInReceiveBuffer(void) {return rxCount;}
 ********************************************************************************/
 
 ISR (USI_START_VECTOR) {
-
   /*
   // This triggers on second write, but claims to the callback there is only *one* byte in buffer
   ONSTOP_USI_RECEIVE_CALLBACK();
@@ -466,6 +441,7 @@ ISR (USI_START_VECTOR) {
   USICR = (1 << USISIE) | (1 << USIOIE) | (1 << USIWM1) | (1 << USIWM0) \
           | (1 << USICS1) | (0 << USICS0) | (0 << USICLK) | (0 << USITC);
   } else {
+    overflowState = USI_SLAVE_IDLE;
     // Stop condition detected -> disable USI Data (ovfl) INTR
     // enable Start Condition Interrupt
     // disable Overflow Interrupt
@@ -507,20 +483,21 @@ ISR (USI_OVERFLOW_VECTOR) {
           overflowState = USI_SLAVE_SEND_DATA;
         } else {
           overflowState = USI_SLAVE_REQUEST_DATA;
-        } // end if
+        }
         SET_USI_TO_SEND_ACK();
       } else {
         SET_USI_TO_TWI_START_CONDITION_MODE();
+        overflowState = USI_SLAVE_IDLE;
       }
       break;
 
     // Master write data mode: check reply and goto USI_SLAVE_SEND_DATA if OK,
     // else reset USI
     case USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA:
-      if ( USIDR )
-      {
+      if (USIDR) {
         // if NACK, the master does not want more data
-        SET_USI_TO_TWI_START_CONDITION_MODE( );
+        SET_USI_TO_TWI_START_CONDITION_MODE();
+overflowState = USI_SLAVE_IDLE;
         return;
       }
       // from here we just drop straight into USI_SLAVE_SEND_DATA if the
@@ -531,33 +508,31 @@ ISR (USI_OVERFLOW_VECTOR) {
     case USI_SLAVE_SEND_DATA:
       // Get data from Buffer
       if (txCount) {
-        USIDR = txBuf[ txTail ];
-        txTail = ( txTail + 1 ) & TWI_TX_BUFFER_MASK;
+        USIDR = txBuf[txTail];
+        txTail = (txTail + 1) & TWI_TX_BUFFER_MASK;
         txCount--;
-      }
-      else
-      {
+      } else {
         // the buffer is empty
-        SET_USI_TO_READ_ACK( ); // This might be necessary sometimes see http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227
-        SET_USI_TO_TWI_START_CONDITION_MODE( );
+        SET_USI_TO_READ_ACK(); // This might be necessary sometimes Ref http://www.avrfreaks.net/index.php?name=PNphpBB2&file=viewtopic&p=805227#805227
+        SET_USI_TO_TWI_START_CONDITION_MODE();
         return;
-      } // end if
+      }
       overflowState = USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA;
-      SET_USI_TO_SEND_DATA( );
+      SET_USI_TO_SEND_DATA();
       break;
 
     // set USI to sample reply from master
     // next USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA
     case USI_SLAVE_REQUEST_REPLY_FROM_SEND_DATA:
       overflowState = USI_SLAVE_CHECK_REPLY_FROM_SEND_DATA;
-      SET_USI_TO_READ_ACK( );
+      SET_USI_TO_READ_ACK();
       break;
 
     // Master read data mode: set USI to sample data from master, next
     // USI_SLAVE_GET_DATA_AND_SEND_ACK
     case USI_SLAVE_REQUEST_DATA:
       overflowState = USI_SLAVE_GET_DATA_AND_SEND_ACK;
-      SET_USI_TO_READ_DATA( );
+      SET_USI_TO_READ_DATA();
       break;
 
     // copy data from USIDR and send ACK
@@ -566,7 +541,7 @@ ISR (USI_OVERFLOW_VECTOR) {
       // put data into buffer
       // check buffer size
       if (rxCount < TWI_RX_BUFFER_SIZE) {
-        rxBuf[ rxHead ] = USIDR;
+        rxBuf[rxHead] = USIDR;
         rxHead = (rxHead + 1) & TWI_RX_BUFFER_MASK;
         rxCount++;
       } else {
@@ -577,5 +552,20 @@ ISR (USI_OVERFLOW_VECTOR) {
       overflowState = USI_SLAVE_REQUEST_DATA;
       SET_USI_TO_SEND_ACK();
       break;
+    case USI_SLAVE_IDLE:
+      // This is an error, an overflow should occur after a start condition
+      // Reinit
+      usiTwiSlaveInit(slaveAddress);
+      overflowState = USI_SLAVE_ERROR;
+      break;
+    case USI_SLAVE_ERROR:
+      break;
+    default:
+      overflowState = USI_SLAVE_ERROR;
   }
+}
+
+
+void usi_twi_set_state_idle() {
+  overflowState = USI_SLAVE_IDLE;
 }
