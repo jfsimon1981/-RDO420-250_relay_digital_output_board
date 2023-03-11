@@ -67,12 +67,16 @@ class States {
   }
 };
 
+// ************* Init *************
+
 void init_timer0() {
   TCCR0A = (1 << CTC0); // 8 bits width, CTC mode
   TCCR0B = (1 << CS02) | (0 << CS01) | (1 << CS00); // Prescaler 101 = 1:1024
   OCR0A = 0x80;
   TIMSK = (1 << OCIE0A); // CompA Interrupt Enable
 }
+
+// ************* ISR *************
 
 ISR (BADISR_vect) {
   while (1) {
@@ -119,6 +123,24 @@ ISR (TIMER0_COMPA_vect) {
 #endif
 }
 
+// ************* CRC4 util *************
+
+static const uint8_t crc4_lookup[16] = {
+		0x00, 0x03, 0x06, 0x05, 0x0c, 0x0f, 0x0a, 0x09,
+		0x08, 0x0b, 0x0e, 0x0d, 0x04, 0x07, 0x02, 0x01
+};
+
+uint8_t crc4(const uint8_t *d, int l) {
+	uint8_t crc_h = 0, crc_l = 0;
+	for (int i = 0; i < l; i++) {
+		crc_l = crc4_lookup[(crc_l ^ d[i]) & 0x0f] ^ (crc_l >> 4);
+		crc_h = crc4_lookup[(crc_h ^ (d[i] >> 4)) & 0x0f] ^ (crc_h >> 4);
+	}
+	return ((crc_h << 4) | crc_l);
+}
+
+// ************* Main program loop *************
+
 void program_loop() {
   States states;
 #ifdef DEBUG
@@ -148,89 +170,89 @@ void program_loop() {
   init_timer0();
   sei(); // interrupt enable
 
-  // ************* Main program loop *************
+  // *** Main program loop ***
 
   while (1) {
 
-  #ifdef DEBUG
+    #ifdef DEBUG
+    // Show internal states on LEDs
+    if (0)
+      display_4bits(overflowState);
 
-  // delme
-  // if (overflowState == 0xff) SET_LED()
-  display_4bits(overflowState);
-  //
-
-  // Shows up some data on LEDs
-  if (0) {
-    #define RS (USIDR >> 1) // Clock hold 1-0
-    static uint16_t i = 0;
-    if (i++ == 5000) {
-    i = 0;
-        char c = (RS & 0x0f);
-        static char d = 0;
-        if (c!=d)
-          display_4bits(c);
-        d = c;
-    }
-  }
-  #endif
-
-    if (usiTwiAmountDataInReceiveBuffer() == 1) {
-      uint8_t bd = usi_twi_buffer_data();
-      if (!bd || (bd > 0x40)) {
-        // Error, not a command
-        // Flush and init
-        while (usiTwiAmountDataInReceiveBuffer())
-          usiTwiReceiveByte();
-        usiTwiSlaveInit();
+    // Shows up some data on LEDs
+    if (1) {
+      #define RS (PORTA >> 4) // Displayed register
+      static uint16_t i = 0;
+      if (i++ == 5000) {
+      i = 0;
+          char c = (RS & 0x0f);
+          static char d = 0;
+          if (c!=d)
+            display_4bits(c);
+          d = c;
       }
     }
+    #endif
 
-    if (usiTwiAmountDataInReceiveBuffer() >= 2) {
+    if (usiTwiAmountDataInReceiveBuffer() >= 4) {
       char cmd   = 0; // Command
       char relay = 0; // Relay number
-      char opt   = 0; // Optional
+      char opt   = 0; // Optional is always sent, but from Command perspective, it is optional
+      char crc   = 0; // 2 CRC4 quadruplets
       UNUSED(opt);
-      char rcv[3];
-      for (int i = 0; i < 3; i++)
+
+      const unsigned int rcv_size = 4;
+      char rcv[rcv_size];
+      for (unsigned int i = 0; i < rcv_size; i++)
         rcv[i] = 0;
+
       int index = 0;
-      // Receive
-      while (usiTwiAmountDataInReceiveBuffer() > 0) {
+      // Receive packets 4 by 4 (a transmission frame is 4 data packets)
+      for (int i = 0; i < 4; i++) {
         rcv[index++] = usiTwiReceiveByte();
-        if (index == 3) {
-          // set_error(TOO_MANY_DATA);
-          break;
-        }
       }
       // Decode
-      cmd = rcv[0];
+      cmd   = rcv[0];
       relay = rcv[1];
-      opt = rcv[2];
+      opt   = rcv[2];
+      crc   = rcv[3];
 
-      if ((cmd == CMD_OPEN) && (relay == RELAY_K1)) {set_k1(0);}
-      else if ((cmd == CMD_OPEN) && (relay == RELAY_K2)) {set_k2(0);}
-      else if ((cmd == CMD_OPEN) && (relay == RELAY_K3)) {set_k3(0);}
-      else if ((cmd == CMD_OPEN) && (relay == RELAY_K4)) {set_k4(0);}
-      else if ((cmd == CMD_CLOSE) && (relay == RELAY_K1)) {set_k1(1);}
-      else if ((cmd == CMD_CLOSE) && (relay == RELAY_K2)) {set_k2(1);}
-      else if ((cmd == CMD_CLOSE) && (relay == RELAY_K3)) {set_k3(1);}
-      else if ((cmd == CMD_CLOSE) && (relay == RELAY_K4)) {set_k4(1);}
-      else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K1)) {toggle_k1();}
-      else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K2)) {toggle_k2();}
-      else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K3)) {toggle_k3();}
-      else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K4)) {toggle_k4();}
-      else {
-        // set_error(UNKNOWN_REQUEST);
-        usiTwiSlaveInit();
+      uint8_t crc_check = crc4((const uint8_t*)rcv, 3); // CRC4 low+high quadruplets on 3 bytes rcved
+
+//display_4bits(crc_check); // delme
+//display_4bits(cmd);       // delme
+//display_4bits(relay);     // delme
+//display_4bits(opt);       // delme
+//display_4bits(crc);       // delme
+
+      if (crc_check == crc) {
+        if ((cmd == CMD_OPEN) && (relay == RELAY_K1)) {set_k1(0);}
+        else if ((cmd == CMD_OPEN) && (relay == RELAY_K2)) {set_k2(0);}
+        else if ((cmd == CMD_OPEN) && (relay == RELAY_K3)) {set_k3(0);}
+        else if ((cmd == CMD_OPEN) && (relay == RELAY_K4)) {set_k4(0);}
+        else if ((cmd == CMD_CLOSE) && (relay == RELAY_K1)) {set_k1(1);}
+        else if ((cmd == CMD_CLOSE) && (relay == RELAY_K2)) {set_k2(1);}
+        else if ((cmd == CMD_CLOSE) && (relay == RELAY_K3)) {set_k3(1);}
+        else if ((cmd == CMD_CLOSE) && (relay == RELAY_K4)) {set_k4(1);}
+        else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K1)) {toggle_k1();}
+        else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K2)) {toggle_k2();}
+        else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K3)) {toggle_k3();}
+        else if ((cmd == CMD_TOGGLE) && (relay == RELAY_K4)) {toggle_k4();}
+        else {
+          // set_error(UNKNOWN_REQUEST);
+          usiTwiSlaveInit();
+        }
+        // usiTwiTransmitByte((uint8_t);
+      } else {
+          // set_error(CRC4_ERROR);
+          usiTwiSlaveInit();
       }
-      // usiTwiTransmitByte((uint8_t)v;
-
       // Flush I2C line
       while (usiTwiAmountDataInReceiveBuffer())
         usiTwiReceiveByte();
 
       // Return line to idle state
-     // overflowState = USI_SLAVE_IDLE;
+      overflowState = USI_SLAVE_IDLE;
     }
 
     #ifndef DEBUG

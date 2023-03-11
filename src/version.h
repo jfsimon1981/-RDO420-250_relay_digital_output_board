@@ -51,5 +51,6 @@
 
   Improvements
     - Increase I2C transaction reliability
+    - Introduce CRC4 to mitigate transmission errors
 
   */

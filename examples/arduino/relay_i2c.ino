@@ -43,6 +43,9 @@
 #include <LCD1x9.h>
 #include <Wire.h>
 
+uint8_t crc4(const uint8_t data, int len); // Make 2 CRC4 quadruplets from uint8_t[]
+uint8_t crc4_from_frame(uint8_t command, uint8_t relay, uint8_t optional = 0);
+
 #if LCD_ENABLE == 1
 LCD1x9 lcd;
 #endif
@@ -151,25 +154,51 @@ void i2c_test_relay(uint8_t relay_num) {
   Serial.print(relay_num, HEX);
 
   // Close relay
-  Wire.beginTransmission(RELAY_BOARD_1_ADDRESS); // 0100 xxx1
-  Wire.write(byte(CMD_CLOSE));  // Close
-  Wire.write(byte(relay_num));  // Relays Kn
-  Wire.endTransmission();
+  {
+    uint8_t command = CMD_CLOSE;
+    uint8_t relay = relay_num;
+    uint8_t optional = 0; // Leave optional to 0 if unused
+    uint8_t crc = crc4_from_frame(command, relay, optional);
+
+    Wire.beginTransmission(RELAY_BOARD_1_ADDRESS); // 0100 xxx1
+    Wire.write(byte(command));  // Command (open, close, toggle, ...)
+    Wire.write(byte(relay));    // Relays Kn
+    Wire.write(byte(optional)); // Some commands have an optional data
+    Wire.write(byte(crc));      // CRC
+    Wire.endTransmission();
+  }
   delay(370);
 
   // Open relay
-  Wire.beginTransmission(RELAY_BOARD_1_ADDRESS); // 0100 xxx1
-  Wire.write(byte(CMD_OPEN));   // Open
-  Wire.write(byte(relay_num));  // Relays Kn
-  Wire.endTransmission();
+  {
+    uint8_t command = CMD_OPEN;
+    uint8_t relay = relay_num;
+    uint8_t optional = 0; // Leave optional to 0 if unused
+    uint8_t crc = crc4_from_frame(command, relay, optional);
+
+    Wire.beginTransmission(RELAY_BOARD_1_ADDRESS); // 0100 xxx1
+    Wire.write(byte(command));  // Command (open, close, toggle, ...)
+    Wire.write(byte(relay));    // Relays Kn
+    Wire.write(byte(optional)); // Some commands have an optional data
+    Wire.write(byte(crc));      // CRC
+    Wire.endTransmission();
+  }
   delay(370);
 }
 
+//void demo_slow_motion_single_relay();
+//void demo_fast_trains();
+
 void loop() {
+
+//demo_slow_motion_single_relay();
+//demo_fast_trains();
+
   i2c_test_relay(RELAY_K1); // Toggle K1
   i2c_test_relay(RELAY_K2); // Toggle K2
   i2c_test_relay(RELAY_K3); // Toggle K3
   i2c_test_relay(RELAY_K4); // Toggle K4
+
   // Green
   digitalWrite(USER_LED_GREEN, HIGH);
   digitalWrite(USER_LED_YELLOW, LOW);
@@ -194,3 +223,27 @@ void loop() {
   // LCD
 }
 
+// ************* CRC4 util *************
+
+static const uint8_t crc4_lookup[16] = {
+		0x00, 0x03, 0x06, 0x05, 0x0c, 0x0f, 0x0a, 0x09,
+		0x08, 0x0b, 0x0e, 0x0d, 0x04, 0x07, 0x02, 0x01
+};
+
+uint8_t crc4(const uint8_t *d, int l) {
+	uint8_t crc_h = 0, crc_l = 0;
+	for (int i = 0; i < l; i++) {
+		crc_l = crc4_lookup[(crc_l ^ d[i]) & 0x0f] ^ (crc_l >> 4);
+		crc_h = crc4_lookup[(crc_h ^ (d[i] >> 4)) & 0x0f] ^ (crc_h >> 4);
+	}
+	return ((crc_h << 4) | crc_l);
+}
+
+uint8_t crc4_from_frame(uint8_t command, uint8_t relay, uint8_t optional) {
+  uint8_t crc4_d[3]; // Every frame to the board is 3 data packets length + crc
+  crc4_d[0] = command;
+  crc4_d[1] = relay;
+  crc4_d[2] = optional;
+  uint8_t rv = crc4(crc4_d, 3);
+  return rv;
+}
