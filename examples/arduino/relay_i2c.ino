@@ -91,9 +91,7 @@ void setup() {
   // Serial
   Serial.begin(115200);
 //Serial1.begin(115200);
-  while (!Serial);
-//while (!Serial1);
-
+  Serial.setTimeout(100); // set new value to 100 milliseconds
   interrupt_setup();
 }
 

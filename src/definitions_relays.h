@@ -50,5 +50,7 @@
 #define COMMON_READ_STATUS      0x81 // Return device status
 #define COMMON_READ_WARNINGS    0x82 // Return device warnings
 #define COMMON_READ_ERRORS      0x83 // Return device errors
+#define READ_BACK               0x84 // Read back last command (send back 4 identical packets)
+#define READ_BACK_CRC4          0x85 // Read back only CRC4 from last command (send packet N°4)
 
 #endif
