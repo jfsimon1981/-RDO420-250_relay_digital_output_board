@@ -81,6 +81,13 @@ void setup() {
   pinMode(USER_LED_GREEN, OUTPUT);
   pinMode(USER_LED_YELLOW, OUTPUT);
 
+  // Demo boards addressed configuration
+  // We close D0 and/or D1 to ground to send I2C open/close commands
+  // to more than 1 board.
+
+  pinMode(0, INPUT_PULLUP);
+  pinMode(1, INPUT_PULLUP);
+
   // I2C, SDA,SCL
   Wire.begin(1);
   delay(3);
@@ -96,13 +103,21 @@ void setup() {
 }
 
 /*
- * Set Relay I2C address by DIP switch 1-2-3 to for 0x41/43/45/47
+ * Set Relay address by DIP switch 1-2-3:
+ * I2C addresses (8) 0x41/43/45/47/49/4b/4d/4f
  * Control via local push-buttons or I2C commands
  */
 
-// Relay address
+// Relay addresses
 
 #define RELAY_BOARD_1_ADDRESS 0x41
+#define RELAY_BOARD_2_ADDRESS 0x43
+#define RELAY_BOARD_3_ADDRESS 0x45
+#define RELAY_BOARD_4_ADDRESS 0x47
+#define RELAY_BOARD_5_ADDRESS 0x49
+#define RELAY_BOARD_6_ADDRESS 0x4B
+#define RELAY_BOARD_7_ADDRESS 0x4D
+#define RELAY_BOARD_8_ADDRESS 0x4F
 
 // Relays number
 
@@ -148,7 +163,7 @@ void setup() {
 #define STATUS_BITS_IS_EOFF     4    // Is in Emergency Off state (local reset required)
 
 // Send a command to relay. Option data (set_pulse_duration)
-void i2c_test_relay(uint8_t relay_num) {
+void i2c_test_relay(uint8_t board_address, uint8_t relay_num) {
   Serial.print(relay_num, HEX);
 
   // Close relay
@@ -158,7 +173,7 @@ void i2c_test_relay(uint8_t relay_num) {
     uint8_t optional = 0; // Leave optional to 0 if unused
     uint8_t crc = crc4_from_frame(command, relay, optional);
 
-    Wire.beginTransmission(RELAY_BOARD_1_ADDRESS); // 0100 xxx1
+    Wire.beginTransmission(board_address); // 0100 xxx1
     Wire.write(byte(command));  // Command (open, close, toggle, ...)
     Wire.write(byte(relay));    // Relays Kn
     Wire.write(byte(optional)); // Some commands have an optional data
@@ -174,7 +189,7 @@ void i2c_test_relay(uint8_t relay_num) {
     uint8_t optional = 0; // Leave optional to 0 if unused
     uint8_t crc = crc4_from_frame(command, relay, optional);
 
-    Wire.beginTransmission(RELAY_BOARD_1_ADDRESS); // 0100 xxx1
+    Wire.beginTransmission(board_address); // 0100 xxx1
     Wire.write(byte(command));  // Command (open, close, toggle, ...)
     Wire.write(byte(relay));    // Relays Kn
     Wire.write(byte(optional)); // Some commands have an optional data
@@ -189,30 +204,69 @@ void i2c_test_relay(uint8_t relay_num) {
 
 void loop() {
 
-//demo_slow_motion_single_relay();
-//demo_fast_trains();
+  /* 
+   * This demo program sends requests to 1, 2, 4 or 8 boards.
+   * Configuration with pints D0-D1
+   * To send open/close commands to only 1 board, leave D0-D1 open
+   * D0-D1 Number of boards requests
+   * 0  0  1 (0x41)
+   * 0  1  2 (0x41 and 0x43)
+   * 1  0  4 (0x41 to  0x47)
+   * 1  1  8 (0x41 to  0x4F)
+   */
 
-  i2c_test_relay(RELAY_K1); // Toggle K1
-  i2c_test_relay(RELAY_K2); // Toggle K2
-  i2c_test_relay(RELAY_K3); // Toggle K3
-  i2c_test_relay(RELAY_K4); // Toggle K4
+  static uint8_t boards_addr_tested = 1;
+
+  // Check how many boards to send I2C test packets to
+  // Configure 1, 2, 4 or 8 by D0-D1
+  {
+    int d0 = digitalRead(0);
+    int d1 = digitalRead(1);
+
+    if (d1 && d0) boards_addr_tested = 1;
+    else if (d1 && !d0) boards_addr_tested = 2;
+    else if (!d1 && d0) boards_addr_tested = 4;
+    else if (!d1 && !d0) boards_addr_tested = 8;
+  }
+
+  // Send Demo program coil requests to 1 or more boards
+
+  for (uint8_t boards_addr = 0; boards_addr < boards_addr_tested; boards_addr++) {
+    uint8_t boards_i2c_addr = 0;
+    if (boards_addr == 0) boards_i2c_addr = RELAY_BOARD_1_ADDRESS;
+    else if (boards_addr == 1) boards_i2c_addr = RELAY_BOARD_2_ADDRESS;
+    else if (boards_addr == 2) boards_i2c_addr = RELAY_BOARD_3_ADDRESS;
+    else if (boards_addr == 3) boards_i2c_addr = RELAY_BOARD_4_ADDRESS;
+    else if (boards_addr == 4) boards_i2c_addr = RELAY_BOARD_5_ADDRESS;
+    else if (boards_addr == 5) boards_i2c_addr = RELAY_BOARD_6_ADDRESS;
+    else if (boards_addr == 6) boards_i2c_addr = RELAY_BOARD_7_ADDRESS;
+    else if (boards_addr == 7) boards_i2c_addr = RELAY_BOARD_8_ADDRESS;
+
+    // demo_slow_motion_single_relay();
+    // demo_fast_trains();
+
+    i2c_test_relay(boards_i2c_addr, RELAY_K1); // Toggle K1
+    i2c_test_relay(boards_i2c_addr, RELAY_K2); // Toggle K2
+    i2c_test_relay(boards_i2c_addr, RELAY_K3); // Toggle K3
+    i2c_test_relay(boards_i2c_addr, RELAY_K4); // Toggle K4
+  }
 
   // Green
   digitalWrite(USER_LED_GREEN, HIGH);
   digitalWrite(USER_LED_YELLOW, LOW);
 #if LCD_ENABLE == 1
-  lcd.write((char*)("Green"));
+  lcd.write((char*)("Demo"));
 #endif
-  Serial.println("Green");
+  Serial.println("Demo");
 //Serial1.println("Green");
   delay(1319);
   // Yellow
   digitalWrite(USER_LED_GREEN, LOW);
   digitalWrite(USER_LED_YELLOW, HIGH);
 #if LCD_ENABLE == 1
-  lcd.write((char*)("Yellow"));
+  lcd.write((char*)("Program"));
 #endif
-  Serial.print("Yellow (timer ");
+  Serial.print("Program (timer ");
 //Serial1.println("Yellow");
   Serial.print(t1, DEC);
   Serial.println(")");

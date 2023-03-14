@@ -51,10 +51,14 @@
 extern overflowState_t overflowState;
 
 /*
- * Jumpers 1-3 define I2C address: 0x41/43/45/47
- * I2C exhange specs
- * Write relay number: 0x01 ... 0x04 to send a command to relay followed by
- * 0x00 for off or 0x01 for on. Terminate (0xff).
+ * Jumpers 1-3 define I2C address: 0x41/43/45/47/49/4b/4d/4f
+ *
+ * I2C exchange specs:
+ * Send 1 init/address byte + 4 data bytes:
+ * Relay number, command, optional, CRC.
+ * Optional may be left to 0 but it needs to be sent.
+ * Use provided C functions or C++ class for convenience.
+ * See example folder.
  */
 
 class States {
@@ -141,6 +145,33 @@ uint8_t crc4(const uint8_t *d, int l) {
 
 // ************* Main program loop *************
 
+// TODO I2C DIP switch
+/*
+ * Reads DIP switch and returns correct I2C address
+ * DIP switch 1-3 to select address 0x41,43,45,47,49,4b,4d,4f
+ * Use B1,3,6 ports active low (0  port to set corresponding I2C address bit)
+ */
+
+uint8_t init_i2c_address() {
+  // Configure / ensure B1,3,6 input with pull-up
+  DDRB &= ~((1 << DDB1) | (1 << DDB3) | (1 << DDB6));
+  PORTB |= ((1 << PORTB1) | (1 << PORTB3) | (1 << PORTB6));
+  _delay_us(100); // Charge line delay (pull-up enable, ~2 us are minimum rqd)
+  // I2C DIP switch OR'ed to with slave_address bits 1-3
+  // From PB1,3,6 resp DIP switch 1,2,3
+  uint8_t dip_switch = 0;
+  dip_switch |= (PINB & (1<<PB1) << 0); // PB1 -> I2C bit 1
+  dip_switch |= (PINB & (1<<PB3) >> 1); // PB3 -> I2C bit 2
+  dip_switch |= (PINB & (1<<PB6) >> 3); // PB6 -> I2C bit 3
+  dip_switch ^= 0x0e; // 0000 1110
+  const uint8_t dip_switch_mask = 0x0e; // 0000 1110
+  dip_switch &= dip_switch_mask;
+  uint8_t slave_address = 0x41; // I2C address
+  slave_address |= dip_switch;
+  return slave_address;
+}
+
+
 void program_loop() {
   States states;
 #ifdef DEBUG
@@ -164,13 +195,13 @@ void program_loop() {
 #endif
 #endif
 
-  const uint8_t slave_address = 0x41; // I2C address
-
-  usiTwiSlaveInit(slave_address);
+  usiTwiSlaveInit(init_i2c_address());
   init_timer0();
   sei(); // interrupt enable
 
   // *** Main program loop ***
+
+// TODO Implement I2C set by DIP sw
 
   while (1) {
 
