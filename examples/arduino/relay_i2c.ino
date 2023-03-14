@@ -176,20 +176,10 @@ int relay_command(uint8_t board_address, uint8_t command, uint8_t relay_num, uin
 }
 
 // Send a command to relay. Option data (set_pulse_duration)
-void i2c_test_relay(uint8_t board_address, uint8_t relay_num) {
-  Serial.print(relay_num, HEX);
-  // Close relay
-  relay_command(board_address, CMD_CLOSE, relay_num);
-  delay(370);
-  // Open relay
-  relay_command(board_address, CMD_OPEN, relay_num);
-  delay(370);
-}
-
-//void demo_slow_motion_single_relay();
-//void demo_fast_trains();
-
-void loop() {
+void i2c_test_relay(uint8_t board_address, uint8_t relay_num);
+// Demo programs
+void demo_slow_motion_single_relay(uint8_t boards_addr_tested);
+void demo_fast_trains(uint8_t boards_addr_tested);
 
   /* 
    * This demo program sends requests to 1, 2, 4 or 8 boards.
@@ -202,6 +192,7 @@ void loop() {
    * 1  1  8 (0x41 to  0x4F)
    */
 
+void loop() {
   static uint8_t boards_addr_tested = 1;
 
   // Check how many boards to send I2C test packets to
@@ -218,6 +209,11 @@ void loop() {
 
   // Send Demo program coil requests to 1 or more boards
 
+  // demo_slow_motion_single_relay(boards_addr_tested);
+  // demo_fast_trains(boards_addr_tested);
+
+  // Test every coil for 1, 2, 4 or 8 relay boards 
+
   for (uint8_t boards_addr = 0; boards_addr < boards_addr_tested; boards_addr++) {
     uint8_t boards_i2c_addr = 0;
     if (boards_addr == 0) boards_i2c_addr = RELAY_BOARD_1_ADDRESS;
@@ -228,9 +224,6 @@ void loop() {
     else if (boards_addr == 5) boards_i2c_addr = RELAY_BOARD_6_ADDRESS;
     else if (boards_addr == 6) boards_i2c_addr = RELAY_BOARD_7_ADDRESS;
     else if (boards_addr == 7) boards_i2c_addr = RELAY_BOARD_8_ADDRESS;
-
-    // demo_slow_motion_single_relay();
-    // demo_fast_trains();
 
     i2c_test_relay(boards_i2c_addr, RELAY_K1); // Toggle K1
     i2c_test_relay(boards_i2c_addr, RELAY_K2); // Toggle K2
@@ -259,6 +252,26 @@ void loop() {
   Serial.println(")");
 
   delay(809);
+}
+
+// ************* Relay toggle on/off test *************
+
+void i2c_test_relay(uint8_t board_address, uint8_t relay_num) {
+  Serial.print(relay_num, HEX);
+  // Close relay
+  relay_command(board_address, CMD_CLOSE, relay_num);
+  delay(370);
+  // Open relay
+  relay_command(board_address, CMD_OPEN, relay_num);
+  delay(370);
+}
+
+// ************* Relay demo programs *************
+
+void demo_slow_motion_single_relay(uint8_t boards_addr_tested) {
+}
+
+void demo_fast_trains(uint8_t boards_addr_tested) {
 }
 
 // ************* CRC4 util *************
