@@ -70,7 +70,7 @@ long unsigned int t1 {0};
 
 ISR(TIMER1_COMPA_vect) {
   t1++;
-  Serial.print(".");
+  // Serial.print(".");
 }
 
 // the setup function runs once when you press reset or power the board
@@ -162,40 +162,27 @@ void setup() {
 #define STATUS_BITS_REM_CTRL_EN 3    // Remote control enabled
 #define STATUS_BITS_IS_EOFF     4    // Is in Emergency Off state (local reset required)
 
+// Function to send an I2C command to a relay. Provide board address, command,
+// relay number, leave optional to 0 if unused
+int relay_command(uint8_t board_address, uint8_t command, uint8_t relay_num, uint8_t optional = 0) {
+  uint8_t crc = crc4_from_frame(command, relay_num, optional);
+  Wire.beginTransmission(board_address); // 0100 xxx1
+  Wire.write(byte(command));   // Command (open, close, toggle, ...)
+  Wire.write(byte(relay_num)); // Relays Kn
+  Wire.write(byte(optional));  // Some commands have an optional data
+  Wire.write(byte(crc));       // CRC
+  Wire.endTransmission();
+  return 0;
+}
+
 // Send a command to relay. Option data (set_pulse_duration)
 void i2c_test_relay(uint8_t board_address, uint8_t relay_num) {
   Serial.print(relay_num, HEX);
-
   // Close relay
-  {
-    uint8_t command = CMD_CLOSE;
-    uint8_t relay = relay_num;
-    uint8_t optional = 0; // Leave optional to 0 if unused
-    uint8_t crc = crc4_from_frame(command, relay, optional);
-
-    Wire.beginTransmission(board_address); // 0100 xxx1
-    Wire.write(byte(command));  // Command (open, close, toggle, ...)
-    Wire.write(byte(relay));    // Relays Kn
-    Wire.write(byte(optional)); // Some commands have an optional data
-    Wire.write(byte(crc));      // CRC
-    Wire.endTransmission();
-  }
+  relay_command(board_address, CMD_CLOSE, relay_num);
   delay(370);
-
   // Open relay
-  {
-    uint8_t command = CMD_OPEN;
-    uint8_t relay = relay_num;
-    uint8_t optional = 0; // Leave optional to 0 if unused
-    uint8_t crc = crc4_from_frame(command, relay, optional);
-
-    Wire.beginTransmission(board_address); // 0100 xxx1
-    Wire.write(byte(command));  // Command (open, close, toggle, ...)
-    Wire.write(byte(relay));    // Relays Kn
-    Wire.write(byte(optional)); // Some commands have an optional data
-    Wire.write(byte(crc));      // CRC
-    Wire.endTransmission();
-  }
+  relay_command(board_address, CMD_OPEN, relay_num);
   delay(370);
 }
 
@@ -272,7 +259,6 @@ void loop() {
   Serial.println(")");
 
   delay(809);
-  // LCD
 }
 
 // ************* CRC4 util *************
