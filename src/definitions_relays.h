@@ -1,6 +1,17 @@
 #ifndef DEFINITIONS_RELAYS_H
 #define DEFINITIONS_RELAYS_H
 
+// Relay addresses
+
+#define RELAY_BOARD_1_ADDRESS 0x41
+#define RELAY_BOARD_2_ADDRESS 0x43
+#define RELAY_BOARD_3_ADDRESS 0x45
+#define RELAY_BOARD_4_ADDRESS 0x47
+#define RELAY_BOARD_5_ADDRESS 0x49
+#define RELAY_BOARD_6_ADDRESS 0x4B
+#define RELAY_BOARD_7_ADDRESS 0x4D
+#define RELAY_BOARD_8_ADDRESS 0x4F
+
 // Relays number
 
 #define RELAY_K1                0x40 // Designator for relay K1

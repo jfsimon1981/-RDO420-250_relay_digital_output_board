@@ -166,7 +166,7 @@ uint8_t init_i2c_address() {
   dip_switch ^= 0x0e; // 0000 1110
   const uint8_t dip_switch_mask = 0x0e; // 0000 1110
   dip_switch &= dip_switch_mask;
-  uint8_t slave_address = 0x41; // I2C address
+  uint8_t slave_address = RELAY_BOARD_1_ADDRESS; // I2C address
   slave_address |= dip_switch;
   return slave_address;
 }

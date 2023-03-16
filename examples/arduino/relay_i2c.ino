@@ -42,6 +42,7 @@
 #include <SoftwareSerial.h>
 #include <LCD1x9.h>
 #include <Wire.h>
+#include "definitions_relays.h"
 
 uint8_t crc4(const uint8_t data, int len); // Make 2 CRC4 quadruplets from uint8_t[]
 uint8_t crc4_from_frame(uint8_t command, uint8_t relay, uint8_t optional = 0);
@@ -108,60 +109,6 @@ void setup() {
  * Control via local push-buttons or I2C commands
  */
 
-// Relay addresses
-
-#define RELAY_BOARD_1_ADDRESS 0x41
-#define RELAY_BOARD_2_ADDRESS 0x43
-#define RELAY_BOARD_3_ADDRESS 0x45
-#define RELAY_BOARD_4_ADDRESS 0x47
-#define RELAY_BOARD_5_ADDRESS 0x49
-#define RELAY_BOARD_6_ADDRESS 0x4B
-#define RELAY_BOARD_7_ADDRESS 0x4D
-#define RELAY_BOARD_8_ADDRESS 0x4F
-
-// Relays number
-
-#define RELAY_K1                0x40 // Designator for relay K1
-#define RELAY_K2                0x41 // Designator for relay K2
-#define RELAY_K3                0x42 // Designator for relay K3
-#define RELAY_K4                0x43 // Designator for relay K4 
-
-// Main control commands
-
-#define CMD_OPEN                1    // Open a relay. pass relay number in param. No option.
-#define CMD_CLOSE               2    // Close a relay. pass relay number in param. No option.
-#define CMD_TOGGLE              3    // Toggle a relay. pass relay number in param. No option.
-#define CMD_CLOSE_PULSE         4    // Close a relay. pass relay number in param. Pulse duration in opt or leave 0 for default.
-#define CMD_OPEN_PULSE          5    // Open a relay. pass relay number in param. Pulse duration in opt or leave 0 for default.
-#define CMD_CLOSE_ALL_RELAYS    6    // Close all relays. No option.
-#define CMD_OPEN_ALL_RELAYS     7    // Open all relays. No option.
-
-// Configuration and emergency off
-
-#define SET_PULSE_DURATION      8    // Set pulse duration in seconds (1 ... 4294967296)
-#define SET_ENABLE_LOCAL_CTRL   9    // Enable coil open/close from board. No option.
-#define SET_DISABLE_LOCAL_CTRL  10   // Disable coil open/close from board. No option.
-#define SET_ENABLE_REMOTE_CTRL  11   // Enable coil open/close from remote. No option.
-#define SET_DISABLE_REMOTE_CTRL 12   // Disable coil open/close from remote. No option.
-#define SET_EMERGENCY_OFF       13   // Open all coils and locks board. Requires local reset to restart operation.
-
-// Read-back
-
-#define READ_RELAY_POSITION     23   // Reads relay position (1 for open, 2 for close)
-#define READ_STATUS             24   // Reads board status
-#define READ_PORT               25   // Reads board port (PA7-0 k1 k2 k3 k4 s1 s2 s3 s4)
-
-#define RELAY_IS_OPEN           1    // Returned value if coil is open.
-#define RELAY_IS_CLOSED         2    // Returned value if coil is closed.
-
-// Status
-
-#define STATUS_BITS_AVAILABLE   0    // Board in available
-#define STATUS_BITS_COM_ERROR   1    // A serial communication error occured
-#define STATUS_BITS_LOC_CTRL_EN 2    // Local control enabled
-#define STATUS_BITS_REM_CTRL_EN 3    // Remote control enabled
-#define STATUS_BITS_IS_EOFF     4    // Is in Emergency Off state (local reset required)
-
 // Function to send an I2C command to a relay. Provide board address, command,
 // relay number, leave optional to 0 if unused
 int relay_command(uint8_t board_address, uint8_t command, uint8_t relay_num, uint8_t optional = 0) {
@@ -195,8 +142,8 @@ void demo_fast_trains(uint8_t boards_addr_tested);
 void loop() {
   static uint8_t boards_addr_tested = 1;
 
-  // Check how many boards to send I2C test packets to
-  // Configure 1, 2, 4 or 8 by D0-D1
+  // On every loop we check the strap configuration, how many boards to send
+  // I2C test packets to: 1, 2, 4 or 8 (close D0-D1 to GND)
   {
     int d0 = digitalRead(0);
     int d1 = digitalRead(1);
@@ -213,6 +160,10 @@ void loop() {
   // demo_fast_trains(boards_addr_tested);
 
   // Test every coil for 1, 2, 4 or 8 relay boards 
+
+  // Usage examples:
+  // relay_command(RELAY_BOARD_1_ADDRESS, CMD_CLOSE, RELAY_K1);
+  // relay_command(RELAY_BOARD_1_ADDRESS, CMD_OPEN, RELAY_K1);
 
   for (uint8_t boards_addr = 0; boards_addr < boards_addr_tested; boards_addr++) {
     uint8_t boards_i2c_addr = 0;
@@ -256,6 +207,11 @@ void loop() {
 
 // ************* Relay toggle on/off test *************
 
+// Utility to send close then open commands to toggle a relay
+// Parameters are board address and relay number
+//  RELAY_BOARD_1_ADDRESS ... RELAY_BOARD_8_ADDRESS
+//  RELAY_K1 ... RELAY_K4
+
 void i2c_test_relay(uint8_t board_address, uint8_t relay_num) {
   Serial.print(relay_num, HEX);
   // Close relay
@@ -264,14 +220,6 @@ void i2c_test_relay(uint8_t board_address, uint8_t relay_num) {
   // Open relay
   relay_command(board_address, CMD_OPEN, relay_num);
   delay(370);
-}
-
-// ************* Relay demo programs *************
-
-void demo_slow_motion_single_relay(uint8_t boards_addr_tested) {
-}
-
-void demo_fast_trains(uint8_t boards_addr_tested) {
 }
 
 // ************* CRC4 util *************
