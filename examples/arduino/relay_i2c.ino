@@ -29,6 +29,11 @@
   * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   */
 
+  /*
+   * This Arduino template works includes the Olimex boards specific 
+   * pin configuration. You may disable LCD_ENABLE or update to suit your needs.
+   */
+
 // Configuration
 
 #define LCD_ENABLE 1
