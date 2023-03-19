@@ -53,8 +53,8 @@ only.
 ## Ressources
 
 LCElectronics portal
-  - [Home](http://lecomptoirelectronique.fr/store)
-  - [Product page RDO420-250](http://lecomptoirelectronique.fr/store/index.php?route=product/product&path=66&product_id=65)
+  - [Home](http://lecomptoirelectronique.fr)
+  - [Product page RDO420-250](http://lecomptoirelectronique.fr/relay-board-rdo420-250)
 
 ## Updates
   - V1.0 Thursday 9/3/23
