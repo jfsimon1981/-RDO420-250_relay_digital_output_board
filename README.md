@@ -50,6 +50,12 @@ com loss.
 Mode 3 firmware, documentation and instructions with additional cost in Pro version
 only.
 
+## Serial protocol
+
+The I2C serial protocol is used to transfer orders from a MCU to the device.
+Protocol supports multiple devices, orders, read-back and similar to CRC in order
+to ensure executed commands are valid MCU requests.
+
 ## Ressources
 
 LCElectronics portal
