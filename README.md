@@ -56,6 +56,12 @@ The I2C serial protocol is used to transfer orders from a MCU to the device.
 Protocol supports multiple devices, orders, read-back and similar to CRC in order
 to ensure executed commands are valid MCU requests.
 
+MCU side has to implement the full protocol for sending packets to devices which
+includes the node address (1 byte), relays+command (2 bytes) and a CRC (1 byte). Frames are 4 bytes long.
+
+MCU doesn't require but can implement the read-back protocol which ensures a
+device (like relay board) has properly received and processed the request).
+
 ## Ressources
 
 LCElectronics portal
